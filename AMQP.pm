@@ -36,7 +36,7 @@ Net::AMQP - Advanced Message Queue Protocol (de)serialization and representation
 
 =head1 DESCRIPTION
 
-This module implements the frame (de)serialization and representation of the Advanced Message Queue Protocol (http://www.amqp.org/).  It is to be used in conjunction with client or server software that does the actual TCP/IP communication.
+This module implements the frame (de)serialization and representation of the Advanced Message Queue Protocol (http://www.amqp.org/).  It is to be used in conjunction with client or server software that does the actual TCP/IP communication.  While it's being written with AMQP version 0-8 in mind, as the spec is defined by an external xml file, support for 0-9, 0-9-1 and eventually 0-10 is hoped for.
 
 =cut
 
@@ -50,11 +50,13 @@ our $VERSION = '0.01.1';
 
 =head1 CLASS METHODS
 
-=head2 parse_raw_frames
+=head2 parse_raw_frames ($string_ref)
 
-  Net::AMQP->parse_raw_frames(\$binary_payload)
+=over 4
 
 Given a scalar reference to a binary string, return a list of L<Net::AMQP::Frame> objects, consuming the data in the string.  Croaks on invalid input.
+
+=back
 
 =cut
 
@@ -85,17 +87,7 @@ sub parse_raw_frames {
     return @frames;
 }
 
-=head2 reader
-
-  my $reader = Net::AMQP->reader();
-  
-  my @frames = $reader->(\$optional_input);
-
-Create a reader function that contains its own buffer. Calling the function
-will return the complete frames in the buffer. $optional_input will be appended
-to the buffer.
-
-=cut
+# same as above only implemented as a closure with correct buffering
 
 sub reader {
   my ($class) = @_;
@@ -129,14 +121,9 @@ sub reader {
   }
 }
 
-
 =head1 SEE ALSO
 
 L<POE::Component::Client::AMQP>
-
-=head1 TODO
-
-At the moment, only AMQP v0-8 is supported.  Support for v0-10 and later v1-0 is hoped for.
 
 =head1 COPYRIGHT
 

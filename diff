@@ -1,0 +1,61 @@
+39c39
+< This module implements the frame (de)serialization and representation of the Advanced Message Queue Protocol (http://www.amqp.org/).  It is to be used in conjunction with client or server software that does the actual TCP/IP communication.
+---
+> This module implements the frame (de)serialization and representation of the Advanced Message Queue Protocol (http://www.amqp.org/).  It is to be used in conjunction with client or server software that does the actual TCP/IP communication.  While it's being written with AMQP version 0-8 in mind, as the spec is defined by an external xml file, support for 0-9, 0-9-1 and eventually 0-10 is hoped for.
+53c53
+< =head2 parse_raw_frames
+---
+> =head2 parse_raw_frames ($string_ref)
+55c55
+<   Net::AMQP->parse_raw_frames(\$binary_payload)
+---
+> =over 4
+58a59,60
+> =back
+> 
+88c90
+< =head1 SEE ALSO
+---
+> # same as above only implemented as a closure with correct buffering
+90c92,122
+< L<POE::Component::Client::AMQP>
+---
+> sub reader {
+>   my ($class) = @_;
+>   my $buffer = "";
+>   return sub {
+>     my ($input) = @_;
+>     if ($input) {
+>       $buffer .= $$input;
+>     }
+>     my @frames;
+>     while (length $buffer >= 8) {
+>       my ($type_id, $channel, $size) = unpack 'CnN', substr $buffer, 0, 7;
+>       last if $size + 8 > length $buffer;
+> 
+>       # chop message off buffer
+>       my $data = substr $buffer,0,8 + $size,'';
+> 
+>       my $payload = substr $data, 7, $size;
+>       my $frame_end_octet = unpack 'C', substr $data, -1;
+>       if ($frame_end_octet != 206) {
+> 	croak "Invalid frame-end octet ($frame_end_octet)";
+>       }
+> 
+>       push @frames, Net::AMQP::Frame->factory(
+> 	type_id => $type_id,
+> 	channel => $channel,
+> 	payload => $payload,
+>       );
+>     }
+>     @frames;
+>   }
+> }
+92c124
+< =head1 TODO
+---
+> =head1 SEE ALSO
+94c126
+< At the moment, only AMQP v0-8 is supported.  Support for v0-10 and later v1-0 is hoped for.
+---
+> L<POE::Component::Client::AMQP>
